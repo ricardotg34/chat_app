@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:chat_app/services/auth_service.dart';
 import 'package:chat_app/services/chat_service.dart';
+import 'package:chat_app/services/socket_service.dart';
 import 'package:chat_app/widgets/chat_message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,32 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   List<ChatMessage> _messages = [];
+  ChatService chatService;
+  SocketService socketService;
+  AuthService authService;
+
+  @override
+  void initState() {
+    this.chatService = context.read<ChatService>();
+    this.socketService = context.read<SocketService>();
+    this.authService = context.read<AuthService>();
+    super.initState();
+
+    this.socketService.socket.on('personal-message', _listenToMessage);
+  }
+
+  void _listenToMessage(dynamic data) {
+    ChatMessage message = new ChatMessage(
+        text: data['message'],
+        uid: data['from'],
+        animationController: AnimationController(
+            vsync: this, duration: Duration(milliseconds: 300)));
+
+    setState(() {
+      _messages.insert(0, message);
+    });
+    message.animationController.forward();
+  }
 
   @override
   void dispose() {
@@ -20,12 +48,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     for (ChatMessage message in _messages) {
       message.animationController.dispose();
     }
+    this.socketService.socket.off('personal-message');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatService = context.watch<ChatService>();
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -77,6 +105,11 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       newMessage.animationController.forward();
       setState(() {
         _messages.insert(0, newMessage);
+      });
+      this.socketService.emit('personal-message', {
+        'from': authService.username,
+        'to': this.chatService.userToSend.id,
+        'message': text
       });
     }
   }

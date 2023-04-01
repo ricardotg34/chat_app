@@ -14,7 +14,7 @@ class ChatMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isOwnMessage = this.uid == '123';
+    bool isOwnMessage = this.uid == '143';
     return FadeTransition(
       opacity: animationController,
       child: SizeTransition(
