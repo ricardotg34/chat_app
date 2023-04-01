@@ -95,6 +95,7 @@ class UsersListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+        physics: BouncingScrollPhysics(),
         itemBuilder: (_, i) => _UserListTile(user: users[i]),
         separatorBuilder: (_, __) => Divider(),
         itemCount: users.length);
@@ -118,7 +119,7 @@ class _UserListTile extends StatelessWidget {
       onTap: () {
         final chatService = context.read<ChatService>();
         chatService.userToSend = user;
-        Navigator.pushReplacementNamed(context, 'chat');
+        Navigator.pushNamed(context, 'chat');
       },
       trailing: Container(
         width: 10,
