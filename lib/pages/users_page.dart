@@ -16,12 +16,6 @@ class UsersPage extends StatefulWidget {
 class _UsersPageState extends State<UsersPage> {
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
-
-  // final users = [
-  //   User(id: '1', name: 'María', email: 'test@test.com', isOnline: true),
-  //   User(id: '2', name: 'Juan', email: 'test1@test.com', isOnline: true),
-  //   User(id: '3', name: 'Giss', email: 'test2@test.com', isOnline: false)
-  // ];
   List<User> users = [];
 
   @override
@@ -33,9 +27,10 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     final socketService = context.watch<SocketService>();
+    final authService = context.watch<AuthService>();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mi nombre'),
+        title: Text(authService.username),
         elevation: 1,
         leading: IconButton(
           icon: Icon(Icons.exit_to_app,
@@ -116,11 +111,7 @@ class _UserListTile extends StatelessWidget {
       title: Text(user.name),
       subtitle: Text(user.email),
       leading: CircleAvatar(child: Text(user.name.substring(0, 2))),
-      onTap: () {
-        final chatService = context.read<ChatService>();
-        chatService.userToSend = user;
-        Navigator.pushNamed(context, 'chat');
-      },
+      onTap: _handleTap(context),
       trailing: Container(
         width: 10,
         height: 10,
@@ -130,4 +121,10 @@ class _UserListTile extends StatelessWidget {
       ),
     );
   }
+
+  void Function() _handleTap(BuildContext context) => () {
+        final chatService = context.read<ChatService>();
+        chatService.userToSend = user;
+        Navigator.pushNamed(context, 'chat');
+      };
 }

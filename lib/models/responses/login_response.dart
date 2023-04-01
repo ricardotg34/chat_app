@@ -30,11 +30,10 @@ class LoginResponse {
 }
 
 class Data {
-  Data({
-    this.accessToken,
-  });
+  Data({this.accessToken, this.username});
 
   String accessToken;
+  String username;
 
   factory Data.fromRawJson(String str) => Data.fromJson(json.decode(str));
 
@@ -42,9 +41,11 @@ class Data {
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
         accessToken: json["accessToken"],
+        username: json["username"],
       );
 
   Map<String, dynamic> toJson() => {
         "accessToken": accessToken,
+        "username": username,
       };
 }

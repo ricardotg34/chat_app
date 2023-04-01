@@ -13,6 +13,7 @@ class AuthService with ChangeNotifier {
   final _storage = new FlutterSecureStorage();
 
   bool get isFetching => this._isFetching;
+  String username;
 
   set isFetching(bool value) {
     this._isFetching = value;
@@ -39,6 +40,7 @@ class AuthService with ChangeNotifier {
       if (res.statusCode == 200) {
         final mappedRes = LoginResponse.fromRawJson(res.body);
         await _storage.write(key: 'token', value: mappedRes.data.accessToken);
+        this.username = mappedRes.data.username;
       } else if (res.statusCode == 401)
         throw HttpException('Token inválido.');
       else
@@ -64,6 +66,7 @@ class AuthService with ChangeNotifier {
       if (res.statusCode == 200) {
         final mappedRes = LoginResponse.fromRawJson(res.body);
         await _storage.write(key: 'token', value: mappedRes.data.accessToken);
+        this.username = mappedRes.data.username;
       } else if (res.statusCode == 400)
         throw HttpException('El usuario o la contraseña son incorrectos.');
       else
