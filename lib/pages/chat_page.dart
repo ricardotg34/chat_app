@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chat_app/models/message.dart';
 import 'package:chat_app/services/auth_service.dart';
 import 'package:chat_app/services/chat_service.dart';
 import 'package:chat_app/services/socket_service.dart';
@@ -27,6 +28,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     super.initState();
 
     this.socketService.socket.on('personal-message', _listenToMessage);
+    _loadMessages(this.chatService.userToSend.id);
   }
 
   void _listenToMessage(dynamic data) {
@@ -97,7 +99,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   _handleSubmit(String text) {
     if (text.length > 0) {
       final newMessage = new ChatMessage(
-        uid: '143',
+        uid: authService.user.id,
         text: text,
         animationController: AnimationController(
             vsync: this, duration: Duration(milliseconds: 400)),
@@ -107,11 +109,26 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         _messages.insert(0, newMessage);
       });
       this.socketService.emit('personal-message', {
-        'from': authService.username,
+        'from': authService.user.id,
         'to': this.chatService.userToSend.id,
         'message': text
       });
     }
+  }
+
+  void _loadMessages(String id) async {
+    List<Message> chat = await this.chatService.getConversationMessages(id);
+
+    final history = chat.map((e) => new ChatMessage(
+        text: e.message,
+        uid: e.from,
+        animationController: AnimationController(
+            vsync: this, duration: Duration(milliseconds: 300))
+          ..forward()));
+
+    setState(() {
+      _messages.insertAll(0, history);
+    });
   }
 }
 

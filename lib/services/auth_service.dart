@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:chat_app/helpers/parseJWT.dart';
+import 'package:chat_app/models/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:chat_app/global/environment.dart';
@@ -13,11 +15,26 @@ class AuthService with ChangeNotifier {
   final _storage = new FlutterSecureStorage();
 
   bool get isFetching => this._isFetching;
-  String username;
+  User user;
 
   set isFetching(bool value) {
     this._isFetching = value;
     notifyListeners();
+  }
+
+  setUser(String token) {
+    var parsedPayload = parseJwt(token);
+    this.user = new User(
+        id: parsedPayload['id'],
+        email: parsedPayload['email'],
+        name: parsedPayload['name']);
+    print(parsedPayload);
+    print(this.user.name);
+  }
+
+  String getJsonFromJWT(String splittedToken) {
+    String normalizedSource = base64Url.normalize(splittedToken);
+    return utf8.decode(base64Url.decode(normalizedSource));
   }
 
   static Future<String> getToken() async {
@@ -40,7 +57,7 @@ class AuthService with ChangeNotifier {
       if (res.statusCode == 200) {
         final mappedRes = LoginResponse.fromRawJson(res.body);
         await _storage.write(key: 'token', value: mappedRes.data.accessToken);
-        this.username = mappedRes.data.username;
+        setUser(mappedRes.data.accessToken);
       } else if (res.statusCode == 401)
         throw HttpException('Token inválido.');
       else
@@ -62,11 +79,10 @@ class AuthService with ChangeNotifier {
           Uri.parse('${Environment.apiUserUrl}/sign-in'),
           body: jsonEncode(data),
           headers: {'Content-type': 'application/json'});
-      print(res.body);
       if (res.statusCode == 200) {
         final mappedRes = LoginResponse.fromRawJson(res.body);
         await _storage.write(key: 'token', value: mappedRes.data.accessToken);
-        this.username = mappedRes.data.username;
+        setUser(mappedRes.data.accessToken);
       } else if (res.statusCode == 400)
         throw HttpException('El usuario o la contraseña son incorrectos.');
       else
@@ -88,7 +104,6 @@ class AuthService with ChangeNotifier {
           body: jsonEncode(data),
           headers: {'Content-type': 'application/json'});
       this._isFetching = false;
-      print(res.body);
       if (res.statusCode == 400)
         throw HttpException('El usuario ya existe.');
       else if (res.statusCode != 201)

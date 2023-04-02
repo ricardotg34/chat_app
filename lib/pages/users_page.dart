@@ -28,9 +28,11 @@ class _UsersPageState extends State<UsersPage> {
   Widget build(BuildContext context) {
     final socketService = context.watch<SocketService>();
     final authService = context.watch<AuthService>();
+
+    final user = authService.user;
     return Scaffold(
       appBar: AppBar(
-        title: Text(authService.username),
+        title: Text(user.name),
         elevation: 1,
         leading: IconButton(
           icon: Icon(Icons.exit_to_app,
